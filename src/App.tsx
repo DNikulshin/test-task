@@ -1,98 +1,174 @@
-import {useCallback, useEffect, useState} from 'react'
-import ReactPaginate from "react-paginate"
+import { useCallback, useEffect, useState } from 'react'
+import ReactPaginate from 'react-paginate'
+import Select from 'react-select';
+import { ToastContainer } from 'react-toastify';
+import { useDebounce } from 'use-debounce';
+import { Loader } from './components/Loader.tsx';
+import { Product } from './components/Product.tsx';
+import { MAX_LIMIT } from './constants.ts'
 import useData from './hooks/useData.ts'
-import {Product} from "./components/Product.tsx";
-import {Loader} from "./components/Loader.tsx";
-import {useDebounce} from "use-debounce";
+import 'react-toastify/dist/ReactToastify.css';
 
+const options = [
+    {value: '', label: 'No filter'},
+    {value: 'brand', label: 'brand'},
+    {value: 'product', label: 'product'},
+    {value: 'price', label: 'price'}
+];
 
 function App() {
-    const limit = 100
+
+    const [limit, setLimit] = useState(100)
     const [offset, setOffset] = useState(0)
-    const {fetchData, pageCount, countProducts, prePageItems, products, loading,fetchDataFilter} = useData()
+    const [selectedOption, setSelectedOption] = useState(options[0]);
+    const {fetchData, pageCount, countProducts, prePageItems, products,loading, loadingFilter ,getFilter, setFilterProducts, filterProducts, countFilterProducts} = useData()
     const [offsetPaginate, setOffsetPaginate] = useState(0)
     const endOffsetPaginate = offsetPaginate + prePageItems
-    const [text, setText] = useState('')
-    const [value] = useDebounce(text, 500)
+    const [inputValue, setInputValue] = useState('')
+    const [debounceValue] = useDebounce(inputValue, 500)
 
-    useEffect(() => {
-        fetchData({offset, limit})
-    }, [fetchData])
-    // useEffect(() => {
-    //     fetchDataFilter(+value)
-    // }, [fetchDataFilter])
+
 
     const handlePageClick = useCallback((event: { selected: number }) => {
         const newOffset = (event.selected * prePageItems) % countProducts
         setOffsetPaginate(newOffset)
-    }, [offsetPaginate, countProducts])
+    }, [prePageItems, countProducts])
 
     const handlePageClickMore = useCallback(async () => {
-        setOffset(prevState => prevState + limit)
-        console.log(offset, 'handlePageClickMore newOffset')
-        await fetchData({offset, limit: limit})
+        setLimit(prevState => prevState + MAX_LIMIT)
+        setOffset(prevState => prevState + MAX_LIMIT)
+        await fetchData({offset, limit})
 
-    }, [offset, products])
+    }, [fetchData, limit, offset])
+
+    const filterData = useCallback( async () => {
+        if(debounceValue) {
+         await getFilter({value: debounceValue, optionValue: selectedOption.value})
+        } else {
+            setFilterProducts(products)
+        }
 
 
+    }, [debounceValue, getFilter, products, selectedOption.value, setFilterProducts])
 
 
+    useEffect(() => {
+        fetchData({offset, limit})
+        // getFilter({value: '', optionValue: '', offset, limit}).then((data) => {
+        //      console.log(data, 'getFilter')
+        //  })
+        //  getFields({optionValue: selectedOption.value, offset, limit}).then((data) => {
+        //      console.log(data, 'getFields')
+        //  })
+    }, [fetchData, limit, offset])
+
+    useEffect(() => {
+        filterData()
+    }, [filterData])
 
     if (loading) {
         return (
-           <Loader/>
+            <Loader/>
         )
     }
-    console.log(countProducts, 'countProducts')
-    console.log(products, 'products')
-    console.log(+value)
+
+    // console.log('==============start===============')
+    // console.log(countProducts, 'countProducts')
+    // console.log(products, 'products')
+    // console.log(debounceValue, 'debounceValue')
+    // console.log(selectedOption.value, 'selectedOption')
+    // console.log(inputValue, 'inputValue')
+    // console.log(filterProducts, 'filterProducts')
+    // console.log('==============end===============')
+    //console.log(filterData(), 'filterData')
     return (
         <div className="app">
+            <ToastContainer
+                position="top-center"
+            />
             <div className="container">
-                <h1>Список товаров</h1>
 
                 <div className="products">
-                    <div className="products-filter">
-                      <label>
-                          Filter:{' '}
-                        <input type="text" placeholder="Введите значение..."
-                               //defaultValue={text}
-                               onChange={ (e) => {
-                                   if(!e.target.value) return  fetchData({offset, limit})
-                                 setText(e.target.value)
-                                   fetchDataFilter(+value)
-                               }}
-                        />
-                      </label>
-                    </div>
-                    <div className="products-header">
+                    <div className="header">
+
+                        <div className="title">
+
+                            <h1>
+
+                                Product list
+                            </h1>
+                            <button onClick={ () =>
+                                fetchData({offset, limit})
+                            }>
+                                Update
+                            </button>
+                        </div>
+
+                        <div className="products-filter">
+                            <Select
+                                defaultValue={selectedOption}
+                                onChange={setSelectedOption}
+                                isMulti={false}
+                                isSearchable={false}
+                                options={options}
+                                name="select"
+                                placeholder="Выберите значение..."
+                            />
+                            {selectedOption.value && <div>
+                                    <input type="search"
+                                           placeholder="Enter value..."
+                                           onChange={ (e) => {
+                                                   setInputValue(e.target.value)
+
+                                           }
+                                    }
+                                    />
+
+                            </div>
+                            }
+                            {loading ? <div>Loading...</div>
+                                : countProducts > 0 &&
+                                <strong>Count: <span className="products-count">{countProducts}</span></strong>}
+
+                            {loadingFilter ? <div>LoadingFilter...</div>
+                                : countFilterProducts > 0
+                                && debounceValue
+                                && <strong>Filter count: <span>{countFilterProducts}</span></strong>}
+                        </div>
+                        <div className="products-header">
                         <span>
                             id
                         </span>
-                        <span>
+                            <span>
                             brand
                         </span>
-                        <span>
+                            <span>
                            product
                         </span>
-                        <span>
+                            <span>
                            price
                         </span>
+                        </div>
                     </div>
-                    {products && products.map((item, idx) => <Product item={item} idx={idx} key={item.id}/>).slice(offsetPaginate, endOffsetPaginate)}
+
+                    <div className="products-content">
+                    {filterProducts && filterProducts
+                            .map((item, idx) => <Product item={item} idx={idx} key={item.id}/>)
+                            .slice(offsetPaginate, endOffsetPaginate)}
+
+                        {!filterProducts.length && <div className="not-found">Not Found</div>}
+                </div>
                 </div>
 
 
+                {!selectedOption.value && <div className="product-more">
 
-                <div className="product-more">
-                    {/*<div>offset {offset && offset}</div>*/}
-                    {/*<div>offsetPaginate {offsetPaginate && offsetPaginate}</div>*/}
                     <button
                         onClick={handlePageClickMore}
                     >
-                        Показать больше товаров
+                        Load more...
                     </button>
-                </div>
+                </div>}
 
                 <ReactPaginate
                     className="pagination"
@@ -107,8 +183,8 @@ function App() {
                         </svg>
                     }
                     onPageChange={handlePageClick}
-                    pageRangeDisplayed={15}
-                    pageCount={pageCount}
+                    pageRangeDisplayed={2}
+                    pageCount={pageCount(countProducts)}
                     previousLabel={
                         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor"
                              className="bi bi-arrow-left-circle" viewBox="0 0 16 16">

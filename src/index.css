@@ -6,9 +6,7 @@
 
 .app {
     width: 100%;
-    height: 100vh;
-    padding: .5rem;
-    margin-top: 1rem;
+    height:100%;
 }
 
 .container {
@@ -16,12 +14,14 @@
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    min-height: 100%;
+    min-height: 100vh;
     max-width: 1200px;
     margin: 0 auto;
     text-align: center;
     gap: .5rem;
 }
+
+
 
 .products {
     display: flex;
@@ -29,12 +29,36 @@
     flex-direction: column;
     gap: .5rem;
     width: 100%;
-    padding: 1rem;
+    height: 100%;
+}
+
+.title {
+    display: flex;
+   justify-content: center;
+    align-items: center;
+    margin-bottom: 1rem;
+    column-gap: 1rem;
+}
+
+.title button {
+    color: brown;
+    border: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, .5);
+    padding: .5rem;
+    border-radius: 5%;
+}
+
+.header {
+    padding: .5rem;
+    position: sticky;
+    top: 0;
+    /*width: 100%;*/
+    background-color: lightblue;
 }
 
 .products-header {
     display: grid;
-    grid-template-columns: 2fr 1fr 3fr .3fr;
+    grid-template-columns: 2fr 1fr 3fr .4fr;
     justify-content: space-between;
     justify-items: stretch;
     align-items: center;
@@ -47,11 +71,17 @@
 
 }
 
+.products-content {
+   padding: .5rem;
+}
+
 .products-filter {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     align-items: center;
     margin-bottom: .5rem;
+    gap: 1rem;
 }
 
 .products-filter input {
@@ -62,6 +92,10 @@
     border: none;
 }
 
+.products-count {
+    color: brown;
+}
+
 .product {
     display: grid;
     grid-template-columns: 2fr 1fr 3fr .3fr;
@@ -70,10 +104,12 @@
     align-items: center;
     box-shadow: 0 2px 5px rgba(0, 0, 0, .5);
     padding: .25rem .5rem;
-    gap: 1rem;
     width: 100%;
     text-align: center;
+    margin-bottom: .5rem;
 }
+
+.not-found {color: brown;}
 
 .product-price {
     border: 1px dashed darkgoldenrod;
@@ -112,10 +148,11 @@
 }
 
 .pagination {
+    margin-top: auto;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    column-gap: 2rem;
+    column-gap: 1.3rem;
     list-style: none;
     cursor: pointer;
     margin-bottom: 2rem;

@@ -4,3 +4,8 @@ export interface IProduct {
     price?: number
     product?: string
 }
+
+export enum ActionTypes {
+    'FILTER'= 'filter'
+
+}
