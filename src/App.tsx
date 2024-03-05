@@ -5,7 +5,7 @@ import { ToastContainer } from 'react-toastify';
 import { useDebounce } from 'use-debounce';
 import { Loader } from './components/Loader.tsx';
 import { Product } from './components/Product.tsx';
-import { MAX_LIMIT } from './constants.ts'
+import {MAX_LIMIT, PRE_PAGE} from './constants.ts'
 import useData from './hooks/useData.ts'
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -17,54 +17,52 @@ const options = [
 ];
 
 function App() {
-
-    const [limit, setLimit] = useState(100)
     const [offset, setOffset] = useState(0)
     const [selectedOption, setSelectedOption] = useState(options[0]);
-    const {fetchData, pageCount, countProducts, prePageItems, products,loading, loadingFilter ,getFilter, setFilterProducts, filterProducts, countFilterProducts} = useData()
+    const {fetchData, pageCount, countProducts, products,loading, loadingFilter ,getFilter, filterProducts, countFilterProducts} = useData()
     const [offsetPaginate, setOffsetPaginate] = useState(0)
-    const endOffsetPaginate = offsetPaginate + prePageItems
+    const endOffsetPaginate = offsetPaginate + PRE_PAGE
     const [inputValue, setInputValue] = useState('')
     const [debounceValue] = useDebounce(inputValue, 500)
 
-
-
     const handlePageClick = useCallback((event: { selected: number }) => {
-        const newOffset = (event.selected * prePageItems) % countProducts
+        const newOffset = (event.selected * PRE_PAGE) % countProducts
         setOffsetPaginate(newOffset)
-    }, [prePageItems, countProducts])
+    }, [countProducts])
 
     const handlePageClickMore = useCallback(async () => {
-        setLimit(prevState => prevState + MAX_LIMIT)
-        setOffset(prevState => prevState + MAX_LIMIT)
-        await fetchData({offset, limit})
+        setOffset(MAX_LIMIT)
+        await fetchData({offset})
 
-    }, [fetchData, limit, offset])
+    }, [fetchData, offset])
 
     const filterData = useCallback( async () => {
         if(debounceValue) {
-         await getFilter({value: debounceValue, optionValue: selectedOption.value})
-        } else {
-            setFilterProducts(products)
+        await getFilter({value: debounceValue, optionValue: selectedOption.value})
         }
 
-
-    }, [debounceValue, getFilter, products, selectedOption.value, setFilterProducts])
-
+    }, [debounceValue, getFilter, selectedOption.value])
 
     useEffect(() => {
-        fetchData({offset, limit})
-        // getFilter({value: '', optionValue: '', offset, limit}).then((data) => {
-        //      console.log(data, 'getFilter')
-        //  })
-        //  getFields({optionValue: selectedOption.value, offset, limit}).then((data) => {
-        //      console.log(data, 'getFields')
-        //  })
-    }, [fetchData, limit, offset])
+        fetchData({offset})
+    }, [fetchData, offset])
 
     useEffect(() => {
         filterData()
     }, [filterData])
+
+    // if(error) {
+    //     return (
+    //         <div>
+    //             error
+    //             <button
+    //                 onClick={() => {
+    //                     window.location.reload()
+    //                 }}
+    //             >Reload Page</button>
+    //         </div>
+    //     )
+    // }
 
     if (loading) {
         return (
@@ -72,7 +70,10 @@ function App() {
         )
     }
 
+    // console.log('RENDER+++++++++++++++++++++++++')
+    // console.log(error)
     // console.log('==============start===============')
+    // console.log(offset, 'offset')
     // console.log(countProducts, 'countProducts')
     // console.log(products, 'products')
     // console.log(debounceValue, 'debounceValue')
@@ -80,7 +81,7 @@ function App() {
     // console.log(inputValue, 'inputValue')
     // console.log(filterProducts, 'filterProducts')
     // console.log('==============end===============')
-    //console.log(filterData(), 'filterData')
+    // console.log(filterProducts && products && debounceValue, 'WWWWWWW')
     return (
         <div className="app">
             <ToastContainer
@@ -94,13 +95,12 @@ function App() {
                         <div className="title">
 
                             <h1>
-
                                 Product list
                             </h1>
                             <button onClick={ () =>
-                                fetchData({offset, limit})
+                                window.location.reload()
                             }>
-                                Update
+                                Initial state
                             </button>
                         </div>
 
@@ -152,11 +152,12 @@ function App() {
                     </div>
 
                     <div className="products-content">
-                    {filterProducts && filterProducts
+                    {(products || !filterProducts ? products : filterProducts)
                             .map((item, idx) => <Product item={item} idx={idx} key={item.id}/>)
-                            .slice(offsetPaginate, endOffsetPaginate)}
+                            .slice(offsetPaginate, endOffsetPaginate)
+                    }
 
-                        {!filterProducts.length && <div className="not-found">Not Found</div>}
+                        {!countFilterProducts && <div className="not-found">Not Found</div>}
                 </div>
                 </div>
 

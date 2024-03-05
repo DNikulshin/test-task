@@ -150,12 +150,14 @@
 .pagination {
     margin-top: auto;
     display: flex;
-    justify-content: space-between;
+    width: 100%;
+    justify-content: center;
     align-items: center;
-    column-gap: 1.3rem;
+    column-gap: 1.5rem;
     list-style: none;
     cursor: pointer;
     margin-bottom: 2rem;
+    overflow: hidden;
 }
 
 .active-page {
