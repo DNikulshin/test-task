@@ -3,8 +3,8 @@ import Select from 'react-select'
 import { ToastContainer } from 'react-toastify'
 import { useDebounce } from 'use-debounce'
 import { Loader } from './components/Loader.tsx'
-import { Products } from './components/Products.tsx';
-import { ProductsHeader } from './components/ProductsHeader.tsx';
+import { MemoizedProducts } from './components/Products.tsx'
+import { ProductsHeader } from './components/ProductsHeader.tsx'
 import { PRE_PAGE } from './constants.ts'
 import useData from './hooks/useData.ts'
 import 'react-toastify/dist/ReactToastify.css'
@@ -72,25 +72,6 @@ function App() {
     useEffect(() => {
             filterData()
     }, [filterData])
-
-
-    console.log('allCountIdsProducts: ', allCountIdsProducts, 'countProducts: ', countProducts)
-    console.log('RENDER+++++++++++++++++++++++++')
-    console.log(allCountIdsProducts, 'countAllProducts')
-    console.log(error, 'error')
-    console.log('==============start===============')
-    console.log(offset, 'offset')
-    console.log(countProducts, 'countProducts33333333333333333333333333')
-    console.log(countFilterProducts, 'countFilterProducts')
-    console.log(products, 'products')
-    console.log(selectedOption.value, 'selectedOption value')
-    console.log(filterProducts, 'filterProducts')
-    console.log((loading), 'loading')
-    console.log((error), 'loading')
-    console.log((loading || error), 'loading || error')
-    console.log(pageCount, 'pageCount')
-    console.log('==============end===============')
-    console.log(selectedOption?.selected, 'selectedOption?.selected')
 
     return (
         <div className="app">
@@ -176,7 +157,7 @@ function App() {
                     </div>
                     {!loading ? <>
 
-                            <Products
+                            <MemoizedProducts
                                 products={products}
                                 offset={offset}
                                 countFilterProducts={countFilterProducts}

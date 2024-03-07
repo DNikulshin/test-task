@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo } from 'react'
 import {IProduct} from '../types.ts'
 
 interface ProductPropTypes {
@@ -6,7 +6,7 @@ interface ProductPropTypes {
     idx?: number
 }
 
-export const Product = ({item}: ProductPropTypes) => {
+const Product = ({item}: ProductPropTypes) => {
     return (
         <div className="product" key={item.id}>
             <div className="product-id">{item.id}</div>

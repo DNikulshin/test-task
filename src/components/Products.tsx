@@ -1,11 +1,9 @@
-import { useCallback, useState } from 'react'
+import { memo, useCallback, useState } from 'react'
 import { FetchDataProps } from '../hooks/useData.ts'
 import { PRE_PAGE } from '../constants.ts'
 import { IProduct } from '../types.ts';
 import { Pagination } from './Pagination.tsx'
 import { MemoizedProduct } from './Product.tsx'
-
-
 
 interface ProductsProps{
     filterProducts: IProduct[]
@@ -24,7 +22,7 @@ interface ProductsProps{
     handlePageClickMore: ({offset}: FetchDataProps) => Promise<void>
 }
 
-export const Products = ({
+const Products = ({
     filterProducts,
     products,
     offset,
@@ -45,7 +43,6 @@ export const Products = ({
         setOffsetPaginate(newOffset)
     }, [countProducts, setOffsetPaginate])
 
-    console.log(allCountIdsProducts <= countProducts , 'allCountIdsProducts < countProducts==========================================')
     return (
         <main className="products-content">
             <>
@@ -89,3 +86,4 @@ export const Products = ({
         </main>
     )
 }
+export const MemoizedProducts = memo(Products)

@@ -1,11 +1,10 @@
-import { AxiosError } from 'axios';
-import { useCallback, useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
-import { instanceAxios } from '../../axios.ts';
-import { MAX_LIMIT } from '../constants.ts';
-import { IProduct } from '../types.ts';
-import { removeDuplicateItems } from '../utils/removeDuplicateItems.tsx';
-// import {dataStore} from '../store/dataStore.tsx'
+import { AxiosError } from 'axios'
+import { useCallback, useEffect, useState } from 'react'
+import { toast } from 'react-toastify'
+import { instanceAxios } from '../../axios.ts'
+import { MAX_LIMIT } from '../constants.ts'
+import { IProduct } from '../types.ts'
+import { removeDuplicateItems } from '../utils/removeDuplicateItems.tsx'
 
 interface GetFilterProps {
     value: string,
@@ -80,8 +79,7 @@ export default function useData() {
             }
         }
 
-    }, [countProducts, errorFilter, getItems, products])
-
+    }, [countProducts, getItems, products])
 
     const fetchData = useCallback(async ({offset = 0}: FetchDataProps) => {
         try {
