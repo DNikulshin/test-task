@@ -1,133 +1,138 @@
 import { AxiosError } from 'axios';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { instanceAxios } from '../../axios.ts';
-import {MAX_LIMIT, PRE_PAGE} from "../constants.ts";
-import {IProduct} from "../types.ts";
+import { MAX_LIMIT } from '../constants.ts';
+import { IProduct } from '../types.ts';
+import { removeDuplicateItems } from '../utils/removeDuplicateItems.tsx';
+// import {dataStore} from '../store/dataStore.tsx'
 
 interface GetFilterProps {
     value: string,
     optionValue: string
 }
 
-interface FetchDataProps {
+export interface FetchDataProps {
     offset: number
 }
+
 export default function useData() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(false)
+    const [errorFilter, setErrorFilter] = useState(false)
     const [loadingFilter, setLoadingFilter] = useState(false)
+    const [allCountIdsProducts, setAllCountIdProducts] = useState(0)
     const [products, setProducts] = useState<IProduct[]>([])
-    //const [productsTest, setProductsTest] = useState<IProduct[]>([])
     const [countProducts, setCountProducts] = useState(0)
     const [filterProducts, setFilterProducts] = useState<IProduct[]>([])
     const [countFilterProducts, setCountFilterProducts] = useState(0)
-    const pageCount =(count: number) =>  Math.ceil(count / PRE_PAGE)
+    const [offset, setOffset] = useState(0)
 
-    const removeDuplicateItems = (array: never[]): any[] => Object.values(array.reduce(
-        (acc: { [x: string | number]:  string | number}, val: { id: string | number }) => {
-            acc[val.id] = Object.assign(acc[val.id] ?? {}, val)
-            return acc
-        }, {}
-    ))
+    const getAllIdsProducts = useCallback(async () => {
+        const {data} = await instanceAxios.post('', {
+            'action': 'get_ids'
+        })
+        setAllCountIdProducts([...new Set(data?.result)].length || 0)
+    }, [])
 
     const getIds = useCallback(async ({offset = 0}) => {
         const {data} = await instanceAxios.post('', {
-            "action": "get_ids",
-            "params": {offset, limit: MAX_LIMIT}
+            'action': 'get_ids',
+            'params': {offset, limit: MAX_LIMIT}
         })
-        return data?.result
+        return [...new Set(data?.result)] as IProduct[]
     }, [])
 
-    const getItems = useCallback(async (ids: { result: IProduct[] }) => {
+    const getItems = useCallback(async (ids: IProduct[]) => {
         const {data} = await instanceAxios.post('', {
-            "action": "get_items",
-            "params": {ids}
+            'action': 'get_items',
+            'params': {ids}
         })
         return data?.result
     }, [])
-
-    // const getFields = useCallback(async ({optionValue, offset, limit}) => {
-    //     const {data}= await instanceAxios.post('', {
-    //         "action": "get_fields",
-    //         //"params":  {"field": null, offset, limit}
-    //     })
-    //
-    //     return data?.result
-    //
-    // }, [])
 
     const getFilter = useCallback(async ({value, optionValue}: GetFilterProps) => {
         try {
-            setError(false)
+            setErrorFilter(false)
             setLoadingFilter(true)
             const {data} = await instanceAxios.post('', {
-                "action": "filter",
-                "params":  {[optionValue]: optionValue === 'price' ? +value : value}
+                'action': 'filter',
+                'params': {[optionValue]: optionValue === 'price' ? +value : value}
             })
-
             const items = await getItems(data?.result)
-            const uniqueItems= removeDuplicateItems(items)
-            setCountFilterProducts( uniqueItems?.length || 0)
-            setFilterProducts(uniqueItems  || [])
+            const uniqueItems = removeDuplicateItems(items)
+            setCountFilterProducts(countProducts || 0)
+            setFilterProducts(products || [])
+            setCountFilterProducts(uniqueItems?.length || 0)
+            setFilterProducts(uniqueItems as IProduct[] || [])
             setLoadingFilter(false)
 
         } catch (e) {
             if (e instanceof AxiosError) {
-                setError(true)
+                setErrorFilter(true)
                 setLoadingFilter(false)
                 console.log(e.message)
                 toast(e.message, {type: 'error'})
             } else {
-                setError(true)
+                setErrorFilter(true)
                 setLoadingFilter(false)
                 console.log(e)
             }
         }
 
-    }, [getItems])
+    }, [countProducts, errorFilter, getItems, products])
+
 
     const fetchData = useCallback(async ({offset = 0}: FetchDataProps) => {
         try {
-
+            if(allCountIdsProducts < countProducts) return
             setError(false)
             setLoading(true)
-            const items = await getItems(
-                await getIds({offset})
-            )
-
+            const ids = await getIds({offset})
+            const items = await getItems(ids)
             const uniqueItems = removeDuplicateItems(items)
             setCountProducts(prevState => prevState + uniqueItems?.length)
-            setProducts(prevState => [...prevState, ...uniqueItems])
+            setProducts(prevState => [...prevState, ...uniqueItems as IProduct[]])
+            setOffset((prevState: number) => prevState + MAX_LIMIT)
             setLoading(false)
-
-            return uniqueItems
 
         } catch (e) {
             if (e instanceof AxiosError) {
                 setError(true)
                 setLoading(false)
                 console.log(e.message)
-                    toast(e.message, {type: 'error'})
+                toast(e.message, {type: 'error'})
             } else {
                 setError(true)
                 setLoading(false)
                 console.log(e)
             }
         }
-    }, [getIds, getItems])
+    }, [allCountIdsProducts, countProducts, getIds, getItems])
+
+    useEffect(() => {
+        fetchData({offset})
+    }, [])
+
+    useEffect(() => {
+        getAllIdsProducts()
+    }, [])
 
     return {
         fetchData,
         loading,
         loadingFilter,
         products,
-        pageCount,
         countProducts,
         getFilter,
         filterProducts,
         setFilterProducts,
         countFilterProducts,
-        error
+        error,
+        errorFilter,
+        setCountFilterProducts,
+        getAllIdsProducts,
+        allCountIdsProducts,
+        offset
     }
 }

@@ -1,95 +1,107 @@
 import { useCallback, useEffect, useState } from 'react'
-import ReactPaginate from 'react-paginate'
-import Select from 'react-select';
-import { ToastContainer } from 'react-toastify';
-import { useDebounce } from 'use-debounce';
-import { Loader } from './components/Loader.tsx';
-import { Product } from './components/Product.tsx';
-import {MAX_LIMIT, PRE_PAGE} from './constants.ts'
+import Select from 'react-select'
+import { ToastContainer } from 'react-toastify'
+import { useDebounce } from 'use-debounce'
+import { Loader } from './components/Loader.tsx'
+import { Products } from './components/Products.tsx';
+import { ProductsHeader } from './components/ProductsHeader.tsx';
+import { PRE_PAGE } from './constants.ts'
 import useData from './hooks/useData.ts'
-import 'react-toastify/dist/ReactToastify.css';
+import 'react-toastify/dist/ReactToastify.css'
 
-const options = [
-    {value: '', label: 'No filter'},
-    {value: 'brand', label: 'brand'},
-    {value: 'product', label: 'product'},
-    {value: 'price', label: 'price'}
+interface OptionType {
+    value: string;
+    label: string
+    selected?: boolean
+}
+
+export interface handlePageClickMoreProps {
+    offset: number
+}
+
+
+const options: OptionType[] = [
+    {value: '', label: 'No filter', selected: false},
+    {value: 'brand', label: 'brand', selected: true},
+    {value: 'product', label: 'product', selected: true},
+    {value: 'price', label: 'price', selected: true}
 ];
 
 function App() {
-    const [offset, setOffset] = useState(0)
-    const [selectedOption, setSelectedOption] = useState(options[0]);
-    const {fetchData, pageCount, countProducts, products,loading, loadingFilter ,getFilter, filterProducts, countFilterProducts} = useData()
-    const [offsetPaginate, setOffsetPaginate] = useState(0)
-    const endOffsetPaginate = offsetPaginate + PRE_PAGE
+    const [pageCount, setPageCount] = useState(0)
+    const [selectedOption, setSelectedOption] = useState<OptionType>(options[0])
+    const {
+        fetchData,
+        countProducts,
+        products,
+        loading,
+        loadingFilter,
+        filterProducts,
+        countFilterProducts,
+        setCountFilterProducts,
+        getFilter,
+        error,
+        errorFilter,
+        allCountIdsProducts,
+        offset
+    } = useData()
+
+    const calculationPageCount = useCallback((count: number) => {
+        setPageCount(Math.ceil(count / PRE_PAGE))
+    }, [])
     const [inputValue, setInputValue] = useState('')
     const [debounceValue] = useDebounce(inputValue, 500)
 
-    const handlePageClick = useCallback((event: { selected: number }) => {
-        const newOffset = (event.selected * PRE_PAGE) % countProducts
-        setOffsetPaginate(newOffset)
-    }, [countProducts])
 
-    const handlePageClickMore = useCallback(async () => {
-        setOffset(MAX_LIMIT)
-        await fetchData({offset})
-
-    }, [fetchData, offset])
-
-    const filterData = useCallback( async () => {
-        if(debounceValue) {
-        await getFilter({value: debounceValue, optionValue: selectedOption.value})
+    const filterData = useCallback(async () => {
+        if (debounceValue) {
+            await getFilter({value: debounceValue, optionValue: selectedOption.value})
+            calculationPageCount(countFilterProducts)
+        } else {
+            setCountFilterProducts(0)
+            calculationPageCount(countProducts)
         }
 
-    }, [debounceValue, getFilter, selectedOption.value])
+    }, [calculationPageCount, countFilterProducts, countProducts, debounceValue, getFilter, selectedOption, setCountFilterProducts])
+
+    const handlePageClickMore = useCallback(async ({offset} : handlePageClickMoreProps) => {
+            await fetchData({offset})
+
+    }, [fetchData])
 
     useEffect(() => {
-        fetchData({offset})
-    }, [fetchData, offset])
-
-    useEffect(() => {
-        filterData()
+            filterData()
     }, [filterData])
 
-    // if(error) {
-    //     return (
-    //         <div>
-    //             error
-    //             <button
-    //                 onClick={() => {
-    //                     window.location.reload()
-    //                 }}
-    //             >Reload Page</button>
-    //         </div>
-    //     )
-    // }
 
-    if (loading) {
-        return (
-            <Loader/>
-        )
-    }
+    console.log('allCountIdsProducts: ', allCountIdsProducts, 'countProducts: ', countProducts)
+    console.log('RENDER+++++++++++++++++++++++++')
+    console.log(allCountIdsProducts, 'countAllProducts')
+    console.log(error, 'error')
+    console.log('==============start===============')
+    console.log(offset, 'offset')
+    console.log(countProducts, 'countProducts33333333333333333333333333')
+    console.log(countFilterProducts, 'countFilterProducts')
+    console.log(products, 'products')
+    console.log(selectedOption.value, 'selectedOption value')
+    console.log(filterProducts, 'filterProducts')
+    console.log((loading), 'loading')
+    console.log((error), 'loading')
+    console.log((loading || error), 'loading || error')
+    console.log(pageCount, 'pageCount')
+    console.log('==============end===============')
+    console.log(selectedOption?.selected, 'selectedOption?.selected')
 
-    // console.log('RENDER+++++++++++++++++++++++++')
-    // console.log(error)
-    // console.log('==============start===============')
-    // console.log(offset, 'offset')
-    // console.log(countProducts, 'countProducts')
-    // console.log(products, 'products')
-    // console.log(debounceValue, 'debounceValue')
-    // console.log(selectedOption.value, 'selectedOption')
-    // console.log(inputValue, 'inputValue')
-    // console.log(filterProducts, 'filterProducts')
-    // console.log('==============end===============')
-    // console.log(filterProducts && products && debounceValue, 'WWWWWWW')
     return (
         <div className="app">
             <ToastContainer
                 position="top-center"
             />
+
             <div className="container">
 
                 <div className="products">
+
                     <div className="header">
 
                         <div className="title">
@@ -97,108 +109,97 @@ function App() {
                             <h1>
                                 Product list
                             </h1>
-                            <button onClick={ () =>
-                                window.location.reload()
-                            }>
-                                Initial state
+                            <button
+                                className="reset"
+                                disabled={loading}
+                                onClick={() =>
+                                    window.location.reload()
+                                }>
+                                Reset
                             </button>
                         </div>
 
                         <div className="products-filter">
                             <Select
                                 defaultValue={selectedOption}
-                                onChange={setSelectedOption}
+                                onChange={((newValue) => setSelectedOption(newValue ?? options[0]))}
                                 isMulti={false}
                                 isSearchable={false}
                                 options={options}
                                 name="select"
                                 placeholder="Выберите значение..."
                             />
-                            {selectedOption.value && <div>
-                                    <input type="search"
-                                           placeholder="Enter value..."
-                                           onChange={ (e) => {
-                                                   setInputValue(e.target.value)
-
-                                           }
-                                    }
-                                    />
-
-                            </div>
+                            {selectedOption.value &&
+                                <input type="search"
+                                       placeholder="Enter value..."
+                                       className={!debounceValue ? ' outline-danger' : ''}
+                                       onChange={(e) => {
+                                           setInputValue(e.target.value)
+                                       }
+                                       }
+                                />
                             }
-                            {loading ? <div>Loading...</div>
-                                : countProducts > 0 &&
-                                <strong>Count: <span className="products-count">{countProducts}</span></strong>}
-
-                            {loadingFilter ? <div>LoadingFilter...</div>
+                            {(!loading && countProducts > 0) &&
+                                <strong>
+                                    Count:{' '}
+                                    <span className="products-count">
+                                        {countProducts}
+                                    </span>
+                                </strong>
+                            }
+                            {error &&
+                                <button className="error-request"
+                                        onClick={() => handlePageClickMore({offset})}
+                                >
+                                    Error: Repeat request
+                                </button>}
+                            {loadingFilter ? <Loader containerSelector="container-loader-find" selector="loader-find"/>
                                 : countFilterProducts > 0
                                 && debounceValue
-                                && <strong>Filter count: <span>{countFilterProducts}</span></strong>}
+                                    ? <strong>
+                                        Filtered:{' '}
+                                        <span
+                                        className="filtered-count">
+                                        {countFilterProducts}
+                                        </span>
+                                    </strong>
+                                    : !countFilterProducts && debounceValue &&
+                                    <div className="danger">Not Found</div>
+                            }
+                            {errorFilter && <button className="error-request"
+                                                    onClick={filterData}
+                            >Error: Repeat request
+                            </button>
+                            }
                         </div>
-                        <div className="products-header">
-                        <span>
-                            id
-                        </span>
-                            <span>
-                            brand
-                        </span>
-                            <span>
-                           product
-                        </span>
-                            <span>
-                           price
-                        </span>
-                        </div>
+                        <ProductsHeader/>
                     </div>
+                    {!loading ? <>
 
-                    <div className="products-content">
-                    {(products || !filterProducts ? products : filterProducts)
-                            .map((item, idx) => <Product item={item} idx={idx} key={item.id}/>)
-                            .slice(offsetPaginate, endOffsetPaginate)
+                            <Products
+                                products={products}
+                                offset={offset}
+                                countFilterProducts={countFilterProducts}
+                                filterProducts={filterProducts}
+                                pageCount={pageCount}
+                                countProducts={countProducts}
+                                loading={loading}
+                                error={error}
+                                selectedOption={selectedOption}
+                                allCountIdsProducts={allCountIdsProducts}
+                                handlePageClickMore={handlePageClickMore}
+                            />
+                        </>
+
+                        : <Loader
+                            containerSelector="container-loader"
+                            selector="loader"
+                            text="Loading..."
+                        />
                     }
 
-                        {!countFilterProducts && <div className="not-found">Not Found</div>}
                 </div>
-                </div>
-
-
-                {!selectedOption.value && <div className="product-more">
-
-                    <button
-                        onClick={handlePageClickMore}
-                    >
-                        Load more...
-                    </button>
-                </div>}
-
-                <ReactPaginate
-                    className="pagination"
-                    breakLabel="..."
-                    nextLabel={
-                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor"
-                             className="bi bi-arrow-right-circle" viewBox="0 0 16 16"
-
-                        >
-                            <path fillRule="evenodd"
-                                  d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8m15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0M4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5z"/>
-                        </svg>
-                    }
-                    onPageChange={handlePageClick}
-                    pageRangeDisplayed={2}
-                    pageCount={pageCount(countProducts)}
-                    previousLabel={
-                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor"
-                             className="bi bi-arrow-left-circle" viewBox="0 0 16 16">
-                            <path fillRule="evenodd"
-                                  d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8m15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-4.5-.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5z"/>
-                        </svg>
-                    }
-                    renderOnZeroPageCount={null}
-                    activeClassName="active-page"
-                />
-
             </div>
-
         </div>
     )
 }
