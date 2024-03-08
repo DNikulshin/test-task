@@ -5,16 +5,15 @@
 }
 
 body, html {
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
     overflow: hidden;
 }
 
 .app {
-    position: relative;
     width: 100%;
-    height: 100vh;
-    overflow-y: hidden;
+    height: 100%;
+    overflow: hidden;
 }
 
 .app::before {
@@ -38,17 +37,25 @@ body, html {
     align-items: center;
     flex-direction: column;
     max-width: 1200px;
+    width: 100%;
     margin: 0 auto;
     text-align: center;
     gap: .5rem;
+    height: 100vh;
 }
 
 .products {
     display: flex;
-    margin-bottom: 1rem;
     flex-direction: column;
     width: 100%;
     height: 100vh;
+}
+.products {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+.products::-webkit-scrollbar {
+    display: none;
 }
 
 .title {
@@ -76,12 +83,12 @@ body, html {
 .header {
     padding: .5rem;
     position: sticky;
-    top: .5rem;
+    top: 0;
     width: 100%;
-    min-height: 15vh;
+    height: auto;
     background-color: rgba(252, 233, 171, .95);
+    z-index: 1;
 }
-
 .products-header {
     display: grid;
     grid-template-columns: 2fr 1fr 3fr .4fr;
@@ -97,13 +104,14 @@ body, html {
 }
 
 .products-content {
+    position: relative;
     display: flex;
     padding: .5rem;
     justify-content: stretch;
     flex-direction: column;
     background-color: snow;
     height: 100%;
-    overflow: scroll;
+    overflow-y: scroll;
 }
 
 .products-filter {
@@ -154,7 +162,7 @@ body, html {
 }
 
 .product-price {
-    margin-left: .5rem;
+    margin: .2rem 0;
     border: 1px dashed darkgoldenrod;
     box-shadow: 0 2px 5px rgba(184, 134, 11, .7);
 }
@@ -164,7 +172,9 @@ body, html {
 }
 
 .product-prod {
+    margin: 0 .2rem 0 2rem;
     word-break: break-word;
+    white-space: break-spaces;
 }
 
 .product-more {
@@ -200,8 +210,8 @@ body, html {
     column-gap: 1.5rem;
     list-style: none;
     cursor: pointer;
-    margin-bottom: 2rem;
     padding: .5rem;
+    margin-bottom: 2.5rem;
 }
 .pagination > li > a:hover {
     color: brown;
@@ -238,7 +248,7 @@ body, html {
     justify-content: center;
     align-items: center;
     width: 100%;
-    height: 85vh;
+    min-height: 75vh;
     gap: 1rem;
     background-color: rgba(252, 233, 171, .8)
 }
@@ -293,13 +303,13 @@ body, html {
 @keyframes spin {
     0%,
     100% {
-        box-shadow: .2em 0px 0 0px currentcolor;
+        box-shadow: .2em 0 0 0 currentcolor;
     }
     12% {
         box-shadow: .2em .2em 0 0 currentcolor;
     }
     25% {
-        box-shadow: 0 .2em 0 0px currentcolor;
+        box-shadow: 0 .2em 0 0 currentcolor;
     }
     37% {
         box-shadow: -.2em .2em 0 0 currentcolor;
@@ -311,7 +321,7 @@ body, html {
         box-shadow: -.2em -.2em 0 0 currentcolor;
     }
     75% {
-        box-shadow: 0px -.2em 0 0 currentcolor;
+        box-shadow: 0 -.2em 0 0 currentcolor;
     }
     87% {
         box-shadow: .2em -.2em 0 0 currentcolor;
