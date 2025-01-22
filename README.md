@@ -1,7 +1,5 @@
 # https://dnikulshin.github.io/test-task/
 
-![Test-task](https://img.hhcdn.ru/photo/758674260.png?t=1737656010&h=ueCWjx7o0H9wAk40Q1XhAw)
-
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:
